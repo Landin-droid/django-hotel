@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Номера - Гостиница{% endblock %}
+
+{% block page_title %}Наши номера{% endblock %}
+
+{% block page_description %}
+<p class="lead">Выберите подходящий номер для вашего отдыха</p>
+{% endblock %}
+
+{% block content %}
+<!-- Форма поиска -->
+<div class="card mb-4">
+  <div class="card-body">
+    <h5 class="card-title">🔍 Поиск номеров</h5>
+    <form method="get">
+      <div class="row g-3">
+        <div class="col-md-3">
+          {% bootstrap_field search_form.check_in show_label=True %}
+        </div>
+        <div class="col-md-3">
+          {% bootstrap_field search_form.check_out show_label=True %}
+        </div>
+        <div class="col-md-2">
+          {% bootstrap_field search_form.capacity show_label=True %}
+        </div>
+        <div class="col-md-2">
+          {% bootstrap_field search_form.category show_label=True %}
+        </div>
+        <div class="col-md-2">
+          <div class="form-check mt-4">
+            {% bootstrap_field search_form.needs_child_bed show_label=True %}
+          </div>
+        </div>
+      </div>
+      <div class="mt-3">
+        {% bootstrap_button "Применить фильтры" button_type="submit" button_class="btn-primary" %}
+        <a href="{% url 'room_list' %}" class="btn btn-outline-secondary">Сбросить</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Список номеров -->
+<div class="row">
+  {% for room in rooms %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card room-card h-100">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Номер {{ room.number }}</h5>
+        <small class="text-muted">Этаж: {{ room.floor }}</small>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <span class="badge bg-primary">{{ room.room_type.get_category_display }}</span>
+          <span class="badge bg-secondary">{{ room.room_type.get_capacity_display }}</span>
+          {% if room.room_type.has_child_bed %}
+          <span class="badge bg-success">Детская кровать</span>
+          {% endif %}
+        </div>
+
+        <p class="card-text">{{ room.room_type.description|default:"Комфортабельный номер для отдыха." }}</p>
+
+        {% if room.room_type.has_child_bed %}
+        <p class="text-success">✓ Возможна установка детской кровати</p>
+        {% endif %}
+      </div>
+      <div class="card-footer">
+        <div class="d-grid gap-2">
+          <a href="{% url 'room_detail' room.pk %}" class="btn btn-outline-primary">
+            Подробнее и бронирование
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="alert alert-warning text-center">
+      <h5>😔 Номера не найдены</h5>
+      <p>Попробуйте изменить параметры поиска</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Бронирование #{{ booking.id }} - Гостиница{% endblock %}
+
+{% block page_title %}Бронирование #{{ booking.id }}{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Информация о бронировании</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Клиент:</h6>
+            <p>{{ booking.client.get_full_name|default:booking.client.username }}</p>
+
+            <h6>Номер:</h6>
+            <p>
+              {{ booking.room.number }} ({{ booking.room.room_type }})<br>
+              <small class="text-muted">Этаж: {{ booking.room.floor }}</small>
+            </p>
+
+            <h6>Даты проживания:</h6>
+            <p>
+              {{ booking.check_in_date }} - {{ booking.check_out_date }}<br>
+              <small class="text-muted">{{ booking.nights }} ночей</small>
+            </p>
+          </div>
+
+          <div class="col-md-6">
+            <h6>Статус:</h6>
+            <p>
+              <span class="booking-status status-{{ booking.status }}">
+                {{ booking.get_status_display }}
+              </span>
+            </p>
+
+            <h6>Детская кровать:</h6>
+            <p>{% if booking.needs_child_bed %}✅ Да{% else %}❌ Нет{% endif %}</p>
+
+            <h6>Стоимость:</h6>
+            <p class="fs-5">{{ booking.total_price }} ₽</p>
+
+            {% if booking.discount_applied %}
+            <h6>Примененная скидка:</h6>
+            <p class="text-success">{{ booking.discount_applied }} (-{{ booking.discount_applied.discount_percent }}%)
+            </p>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if booking.actual_check_in or booking.actual_check_out %}
+        <hr>
+        <div class="row">
+          {% if booking.actual_check_in %}
+          <div class="col-md-6">
+            <h6>Фактическое заселение:</h6>
+            <p>{{ booking.actual_check_in }}</p>
+          </div>
+          {% endif %}
+
+          {% if booking.actual_check_out %}
+          <div class="col-md-6">
+            <h6>Фактическое выселение:</h6>
+            <p>{{ booking.actual_check_out }}</p>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Действия</h5>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-2">
+          {% if user.user_type in 'admin staff' %}
+          {% if booking.status == 'pending' %}
+          <a href="{% url 'confirm_booking' booking.pk %}" class="btn btn-success">
+            Подтвердить бронирование
+          </a>
+          {% endif %}
+
+          {% if booking.status == 'confirmed' %}
+          <a href="{% url 'check_in_booking' booking.pk %}" class="btn btn-primary">
+            Заселить клиента
+          </a>
+          {% endif %}
+
+          {% if booking.status == 'checked_in' %}
+          <a href="{% url 'check_out_booking' booking.pk %}" class="btn btn-warning">
+            Выселить клиента
+          </a>
+          {% endif %}
+          {% endif %}
+
+          {% if booking.status == 'pending' %}
+          <a href="{% url 'booking_cancel' booking.pk %}" class="btn btn-danger">
+            Отменить бронирование
+          </a>
+          {% endif %}
+
+          <a href="{% url 'booking_list' %}" class="btn btn-outline-secondary">
+            Назад к списку
+          </a>
+        </div>
+
+        <div class="mt-3">
+          <div class="alert alert-info">
+            <small>
+              <strong>Телефон администратора:</strong><br>
+              <a href="tel:+71234567890">+7 (123) 456-78-90</a>
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

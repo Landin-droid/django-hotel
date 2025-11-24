@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Мои бронирования - Гостиница{% endblock %}
+
+{% block page_title %}Мои бронирования{% endblock %}
+
+{% block content %}
+{% if bookings %}
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Номер</th>
+        <th>Даты</th>
+        <th>Статус</th>
+        <th>Стоимость</th>
+        <th>Действия</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for booking in bookings %}
+      <tr>
+        <td>#{{ booking.id }}</td>
+        <td>{{ booking.room.number }} ({{ booking.room.room_type }})</td>
+        <td>
+          {{ booking.check_in_date }} - {{ booking.check_out_date }}<br>
+          <small class="text-muted">{{ booking.nights }} ночей</small>
+        </td>
+        <td>
+          <span class="booking-status status-{{ booking.status }}">
+            {{ booking.get_status_display }}
+          </span>
+        </td>
+        <td>{{ booking.total_price }} ₽</td>
+        <td>
+          <a href="{% url 'booking_detail' booking.pk %}" class="btn btn-sm btn-outline-primary">
+            Подробнее
+          </a>
+          {% if booking.status == 'pending' %}
+          <a href="{% url 'booking_cancel' booking.pk %}" class="btn btn-sm btn-outline-danger">
+            Отменить
+          </a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="alert alert-info text-center">
+  <h5>📝 У вас пока нет бронирований</h5>
+  <p>Начните с поиска подходящего номера</p>
+  <a href="{% url 'room_list' %}" class="btn btn-primary">Найти номер</a>
+</div>
+{% endif %}
+{% endblock %}

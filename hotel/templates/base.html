@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Гостиница{% endblock %}</title>
+  {% load django_bootstrap5 %}
+  {% bootstrap_css %}
+  {% bootstrap_javascript %}
+  <style>
+    .navbar-brand {
+      font-weight: bold;
+    }
+
+    .footer {
+      background-color: #f8f9fa;
+      padding: 2rem 0;
+      margin-top: 3rem;
+    }
+
+    .room-card {
+      transition: transform 0.2s;
+      margin-bottom: 1.5rem;
+    }
+
+    .room-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .booking-status {
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .status-pending {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .status-confirmed {
+      background-color: #d1ecf1;
+      color: #0c5460;
+    }
+
+    .status-checked_in {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .status-checked_out {
+      background-color: #e2e3e5;
+      color: #383d41;
+    }
+
+    .status-cancelled {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Навигационная панель -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'home' %}">🏨 Гостиница</a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'home' %}">Главная</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'room_list' %}">Номера</a>
+          </li>
+          {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'booking_list' %}">Мои бронирования</a>
+          </li>
+          {% if user.user_type in 'admin staff' %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'admin_dashboard' %}">Панель управления</a>
+          </li>
+          {% endif %}
+          {% endif %}
+        </ul>
+
+        <ul class="navbar-nav">
+          {% if user.is_authenticated %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+              🙎🏻‍♂️ {{ user.username }}
+            </a>
+            <ul class="dropdown-menu">
+              <li><span class="dropdown-item-text">Тип: {{ user.get_user_type_display }}</span></li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item" href="{% url 'logout' %}">Выйти</a></li>
+            </ul>
+          </li>
+          {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'login' %}">Войти</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'client_register' %}">Регистрация</a>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Основной контент -->
+  <main class="container my-4">
+    <!-- Сообщения -->
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Заголовок страницы -->
+    {% block page_header %}
+    <div class="row mb-4">
+      <div class="col">
+        <h1>{% block page_title %}{% endblock %}</h1>
+        {% block page_description %}{% endblock %}
+      </div>
+    </div>
+    {% endblock %}
+
+    <!-- Контент -->
+    {% block content %}
+    {% endblock %}
+  </main>
+
+  <!-- Подвал -->
+  <footer class="footer mt-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <h5>Гостиница</h5>
+          <p class="text-muted">Комфортный отдых в самом центре города</p>
+        </div>
+        <div class="col-md-3">
+          <h5>Контакты</h5>
+          <ul class="list-unstyled">
+            <li>📞 +7 (123) 456-78-90</li>
+            <li>📧 info@hotel.ru</li>
+            <li>📍 г. Город, ул. Центральная, 1</li>
+          </ul>
+        </div>
+        <div class="col-md-3">
+          <h5>Бронирование</h5>
+          <p class="text-muted">Для бронирования номера позвоните администратору</p>
+        </div>
+      </div>
+      <hr>
+      <div class="text-center text-muted">
+        <small>&copy; 2024 Гостиница. Все права защищены.</small>
+      </div>
+    </div>
+  </footer>
+</body>
+
+</html>
