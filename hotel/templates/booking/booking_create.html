@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Создание бронирования - Гостиница{% endblock %}
+
+{% block page_title %}➕ Создание нового бронирования{% endblock %}
+
+{% block page_description %}
+<p class="lead">Заполните данные клиента и параметры бронирования</p>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">
+          <i class="fas fa-calendar-plus me-2"></i>Новое бронирование
+        </h5>
+      </div>
+      <div class="card-body">
+        <form method="post" id="booking-form">
+          {% csrf_token %}
+
+          <!-- Данные клиента -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="border-bottom pb-2">
+                <i class="fas fa-user me-2"></i>Данные клиента
+              </h5>
+            </div>
+
+            <div class="col-md-4">
+              <div class="form-group">
+                <label for="{{ client_form.first_name.id_for_label }}" class="form-label fw-bold">
+                  Имя клиента *
+                </label>
+                {{ client_form.first_name }}
+                {% if client_form.first_name.errors %}
+                <div class="text-danger small">{{ client_form.first_name.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="form-group">
+                <label for="{{ client_form.last_name.id_for_label }}" class="form-label fw-bold">
+                  Фамилия клиента *
+                </label>
+                {{ client_form.last_name }}
+                {% if client_form.last_name.errors %}
+                <div class="text-danger small">{{ client_form.last_name.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="form-group">
+                <label for="{{ client_form.phone.id_for_label }}" class="form-label fw-bold">
+                  Телефон *
+                </label>
+                {{ client_form.phone }}
+                {% if client_form.phone.errors %}
+                <div class="text-danger small">{{ client_form.phone.errors }}</div>
+                {% endif %}
+                <div class="form-text">Формат: +7 XXX XXX-XX-XX</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Параметры бронирования -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="border-bottom pb-2">
+                <i class="fas fa-bed me-2"></i>Параметры проживания
+              </h5>
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-group">
+                <label for="{{ booking_form.room.id_for_label }}" class="form-label fw-bold">
+                  Номер *
+                </label>
+                {{ booking_form.room }}
+                {% if booking_form.room.errors %}
+                <div class="text-danger small">{{ booking_form.room.errors }}</div>
+                {% endif %}
+                <div class="form-text">Выберите доступный номер</div>
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="{{ booking_form.check_in_date.id_for_label }}" class="form-label fw-bold">
+                  Дата заезда *
+                </label>
+                {{ booking_form.check_in_date }}
+                {% if booking_form.check_in_date.errors %}
+                <div class="text-danger small">{{ booking_form.check_in_date.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="{{ booking_form.check_out_date.id_for_label }}" class="form-label fw-bold">
+                  Дата выезда *
+                </label>
+                {{ booking_form.check_out_date }}
+                {% if booking_form.check_out_date.errors %}
+                <div class="text-danger small">{{ booking_form.check_out_date.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Дополнительные опции -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="border-bottom pb-2">
+                <i class="fas fa-cogs me-2"></i>Дополнительные опции
+              </h5>
+            </div>
+
+            <div class="col-md-6">
+              <div class="form-check form-switch mt-3">
+                {{ booking_form.needs_child_bed }}
+                <label for="{{ booking_form.needs_child_bed.id_for_label }}" class="form-check-label fw-bold">
+                  Детская кровать
+                </label>
+                <div class="form-text">+500 ₽ за ночь</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Примечания -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <h5 class="border-bottom pb-2">
+                <i class="fas fa-sticky-note me-2"></i>Примечания
+              </h5>
+            </div>
+
+            <div class="col-12">
+              <div class="form-group">
+                <label for="{{ booking_form.notes.id_for_label }}" class="form-label fw-bold">
+                  Дополнительная информация
+                </label>
+                {{ booking_form.notes }}
+                {% if booking_form.notes.errors %}
+                <div class="text-danger small">{{ booking_form.notes.errors }}</div>
+                {% endif %}
+                <div class="form-text">Особые пожелания, комментарии и т.д.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Предварительный расчет -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <h6 class="card-title">
+                    <i class="fas fa-calculator me-2"></i>Предварительный расчет
+                  </h6>
+                  <div id="price-preview" class="text-muted">
+                    <em>Выберите номер и даты для расчета стоимости...</em>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Кнопки действий -->
+          <div class="row">
+            <div class="col-12">
+              <div class="d-flex justify-content-between">
+                <a href="{% url 'booking_list' %}" class="btn btn-outline-secondary">
+                  Назад к списку
+                </a>
+                <button type="submit" class="btn btn-success btn-lg">
+                  Создать бронирование
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Информация о процессе -->
+    <div class="card mt-4">
+      <div class="card-body">
+        <h6 class="card-title">
+          <i class="fas fa-info-circle me-2 text-info"></i>Процесс бронирования
+        </h6>
+        <ol class="mb-0">
+          <li>Заполните данные клиента (имя, фамилия, телефон)</li>
+          <li>Выберите номер и даты проживания</li>
+          <li>При необходимости отметьте опцию "Детская кровать"</li>
+          <li>Добавьте примечания если нужно</li>
+          <li>Система автоматически рассчитает стоимость с учетом скидок</li>
+          <li>После создания бронирования можно подтвердить его или отменить</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const roomSelect = document.querySelector('#{{ booking_form.room.id_for_label }}');
+    const checkInInput = document.querySelector('#{{ booking_form.check_in_date.id_for_label }}');
+    const checkOutInput = document.querySelector('#{{ booking_form.check_out_date.id_for_label }}');
+    const childBedCheckbox = document.querySelector('#{{ booking_form.needs_child_bed.id_for_label }}');
+    const pricePreview = document.getElementById('price-preview');
+
+    function calculatePrice() {
+      const roomId = roomSelect.value;
+      const checkIn = checkInInput.value;
+      const checkOut = checkOutInput.value;
+      const needsChildBed = childBedCheckbox.checked;
+
+      if (roomId && checkIn && checkOut) {
+        pricePreview.innerHTML = `
+                <div class="text-info">
+                    <i class="fas fa-sync-alt fa-spin me-2"></i>
+                    Расчет стоимости...
+                </div>
+            `;
+
+        fetch(`{% url 'calculate_price' %}?room_id=${roomId}&check_in=${checkIn}&check_out=${checkOut}&needs_child_bed=${needsChildBed}`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (data.error) {
+              pricePreview.innerHTML = `
+                            <div class="text-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                ${data.error}
+                            </div>
+                        `;
+            } else if (data.success) {
+              let priceHtml = `
+                            <div class="text-success">
+                                <h5 class="mb-2">${data.total_price.toLocaleString('ru-RU')} ₽</h5>
+                                <div class="small">
+                                    <div><strong>${data.nights}</strong> ночей</div>
+                        `;
+
+              if (data.child_bed_price > 0) {
+                priceHtml += `<div class="text-info mt-1">
+                                <i class="fas fa-bed me-1"></i>Детская кровать: +${data.child_bed_price.toLocaleString('ru-RU')} ₽
+                            </div>`;
+              }
+
+              if (data.discount_applied) {
+                priceHtml += `<div class="text-warning mt-1">
+                                <i class="fas fa-tag me-1"></i>${data.discount_info}
+                            </div>`;
+              }
+
+              priceHtml += `
+                                    <div class="text-muted mt-1">
+                                        ~${Math.round(data.price_per_night).toLocaleString('ru-RU')} ₽/ночь
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+              pricePreview.innerHTML = priceHtml;
+            }
+          })
+          .catch(error => {
+            pricePreview.innerHTML = `
+                        <div class="text-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Ошибка при расчете стоимости
+                        </div>
+                    `;
+            console.error('Error:', error);
+          });
+      } else {
+        let message = 'Выберите номер и даты для расчета стоимости...';
+        if (roomId && (!checkIn || !checkOut)) {
+          message = 'Выберите даты заезда и выезда';
+        } else if ((checkIn || checkOut) && !roomId) {
+          message = 'Выберите номер';
+        }
+        pricePreview.innerHTML = `<em>${message}</em>`;
+      }
+    }
+
+    roomSelect.addEventListener('change', calculatePrice);
+    checkInInput.addEventListener('change', calculatePrice);
+    checkOutInput.addEventListener('change', calculatePrice);
+    childBedCheckbox.addEventListener('change', calculatePrice);
+
+    const today = new Date().toISOString().split('T')[0];
+    checkInInput.min = today;
+
+    checkInInput.addEventListener('change', function () {
+      if (this.value) {
+        const nextDay = new Date(this.value);
+        nextDay.setDate(nextDay.getDate() + 1);
+        checkOutInput.min = nextDay.toISOString().split('T')[0];
+
+        if (checkOutInput.value && new Date(checkOutInput.value) <= new Date(this.value)) {
+          checkOutInput.value = '';
+        }
+      }
+      calculatePrice();
+    });
+
+    calculatePrice();
+  });
+</script>
+{% endblock %}

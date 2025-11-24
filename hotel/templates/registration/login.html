@@ -3,26 +3,34 @@
 
 {% block title %}Вход - Гостиница{% endblock %}
 
-{% block page_title %}Вход в систему{% endblock %}
+{% block page_title %}Вход в систему ресепшена{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-md-6">
     <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">
+          <i class="fas fa-lock me-2"></i>Доступ для сотрудников
+        </h5>
+      </div>
       <div class="card-body">
         <form method="post">
           {% csrf_token %}
           {% bootstrap_form form %}
 
-          <div class="d-grid gap-2">
-            {% bootstrap_button "Войти" button_type="submit" button_class="btn-primary" %}
+          <input type="hidden" name="next" value="{{ next }}">
+
+          <div class="d-grid gap-2 mt-4">
+            {% bootstrap_button "Войти в систему" button_type="submit" button_class="btn-primary btn-lg" %}
           </div>
         </form>
 
         <hr>
 
         <div class="text-center">
-          <p>Нет аккаунта? <a href="{% url 'client_register' %}">Зарегистрируйтесь</a></p>
+          <p class="text-muted">Система управления гостиницей</p>
+          <small class="text-muted">Только для авторизованного персонала</small>
         </div>
       </div>
     </div>

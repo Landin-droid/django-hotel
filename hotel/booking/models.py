@@ -3,6 +3,20 @@ from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 
+class Client(models.Model):
+    """Простая модель для хранения данных клиента"""
+    first_name = models.CharField(max_length=100, verbose_name='Имя')
+    last_name = models.CharField(max_length=100, verbose_name='Фамилия')
+    phone = models.CharField(max_length=20, verbose_name='Телефон')
+
+    class Meta:
+        verbose_name = 'Клиент'
+        verbose_name_plural = 'Клиенты'
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.phone})"
+
+
 class RoomType(models.Model):
     CATEGORY_CHOICES = (
         ('standard', 'Стандарт'),
@@ -25,10 +39,6 @@ class RoomType(models.Model):
         choices=CAPACITY_CHOICES,
         verbose_name='Вместимость'
     )
-    has_child_bed = models.BooleanField(
-        default=False,
-        verbose_name='Возможность установки детской кровати'
-    )
     description = models.TextField(
         blank=True,
         verbose_name='Описание'
@@ -37,11 +47,10 @@ class RoomType(models.Model):
     class Meta:
         verbose_name = 'Тип номера'
         verbose_name_plural = 'Типы номеров'
-        unique_together = ['category', 'capacity', 'has_child_bed']
+        unique_together = ['category', 'capacity']
 
     def __str__(self):
-        child_bed_info = " с детской кроватью" if self.has_child_bed else ""
-        return f"{self.get_category_display()} {self.get_capacity_display()}{child_bed_info}"
+        return f"{self.get_category_display()} {self.get_capacity_display()}"
 
 
 class Room(models.Model):
@@ -147,7 +156,7 @@ class Booking(models.Model):
     )
 
     client = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        Client,
         on_delete=models.CASCADE,
         related_name='bookings',
         verbose_name='Клиент'
@@ -193,6 +202,12 @@ class Booking(models.Model):
         default='pending',
         verbose_name='Статус'
     )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
+        verbose_name='Создано администратором'
+    )
+    notes = models.TextField(blank=True, verbose_name='Примечания')
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -202,7 +217,7 @@ class Booking(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"Бронирование #{self.id} - {self.client.username} ({self.get_status_display()})"
+        return f"Бронирование #{self.id} - {self.client}"
 
     @property
     def nights(self):

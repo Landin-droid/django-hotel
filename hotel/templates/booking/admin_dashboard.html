@@ -11,7 +11,7 @@
   <div class="col-md-3">
     <div class="card text-white bg-primary">
       <div class="card-body">
-        <h4 class="card-title">{{ total_bookings }}</h4>
+        <h4 class="card-title">{{ stats.total_bookings }}</h4>
         <p class="card-text">Всего бронирований</p>
       </div>
     </div>
@@ -19,7 +19,7 @@
   <div class="col-md-3">
     <div class="card text-white bg-success">
       <div class="card-body">
-        <h4 class="card-title">{{ active_bookings }}</h4>
+        <h4 class="card-title">{{ stats.active_bookings }}</h4>
         <p class="card-text">Активные бронирования</p>
       </div>
     </div>
@@ -27,7 +27,7 @@
   <div class="col-md-3">
     <div class="card text-white bg-warning">
       <div class="card-body">
-        <h4 class="card-title">{{ today_check_ins }}</h4>
+        <h4 class="card-title">{{ stats.today_check_ins }}</h4>
         <p class="card-text">Заезды сегодня</p>
       </div>
     </div>
@@ -35,19 +35,115 @@
   <div class="col-md-3">
     <div class="card text-white bg-info">
       <div class="card-body">
-        <h4 class="card-title">{{ today_check_outs }}</h4>
+        <h4 class="card-title">{{ stats.today_check_outs }}</h4>
         <p class="card-text">Выезды сегодня</p>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Ближайшие заезды -->
+{% if upcoming_checkins %}
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">📅 Ближайшие заезды</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Клиент</th>
+                <th>Номер</th>
+                <th>Дата заезда</th>
+                <th>Ночей</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for booking in upcoming_checkins %}
+              <tr>
+                <td>#{{ booking.id }}</td>
+                <td>{{ booking.client.first_name }} {{ booking.client.last_name }}</td>
+                <td>{{ booking.room.number }}</td>
+                <td>{{ booking.check_in_date }}</td>
+                <td>{{ booking.nights }}</td>
+                <td>
+                  <a href="{% url 'booking_detail' booking.pk %}" class="btn btn-sm btn-outline-primary">
+                    Управлять
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Текущие гости -->
+{% if current_guests %}
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">🏨 Текущие гости</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Клиент</th>
+                <th>Номер</th>
+                <th>Дата выезда</th>
+                <th>Заселен</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for booking in current_guests %}
+              <tr>
+                <td>#{{ booking.id }}</td>
+                <td>{{ booking.client.first_name }} {{ booking.client.last_name }}</td>
+                <td>{{ booking.room.number }}</td>
+                <td>{{ booking.check_out_date }}</td>
+                <td>
+                  {% if booking.actual_check_in %}
+                  {{ booking.actual_check_in|date:"d.m.Y H:i" }}
+                  {% else %}
+                  <span class="text-warning">Не указано</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{% url 'booking_detail' booking.pk %}" class="btn btn-sm btn-outline-primary">
+                    Управлять
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <!-- Последние бронирования -->
 <div class="row">
   <div class="col-12">
     <div class="card">
       <div class="card-header">
-        <h5 class="card-title mb-0">Последние бронирования</h5>
+        <h5 class="card-title mb-0">🕐 Последние бронирования</h5>
       </div>
       <div class="card-body">
         {% if recent_bookings %}
@@ -66,8 +162,8 @@
             <tbody>
               {% for booking in recent_bookings %}
               <tr>
-                <td>#{{ booking.id }}</td>
-                <td>{{ booking.client.username }}</td>
+                <td>№{{ booking.id }}</td>
+                <td>{{ booking.client.first_name }} {{ booking.client.last_name }}</td>
                 <td>{{ booking.room.number }}</td>
                 <td>
                   {{ booking.check_in_date }} - {{ booking.check_out_date }}<br>
@@ -90,7 +186,11 @@
         </div>
         {% else %}
         <div class="alert alert-info text-center">
-          <p>Пока нет бронирований</p>
+          <h5>📝 Пока нет бронирований</h5>
+          <p class="mb-3">Создайте первое бронирование</p>
+          <a href="{% url 'booking_create' %}" class="btn btn-primary">
+            ➕ Создать бронирование
+          </a>
         </div>
         {% endif %}
       </div>
@@ -103,28 +203,28 @@
   <div class="col-12">
     <div class="card">
       <div class="card-header">
-        <h5 class="card-title mb-0">Быстрые действия</h5>
+        <h5 class="card-title mb-0">⚡ Быстрые действия</h5>
       </div>
       <div class="card-body">
         <div class="row">
           <div class="col-md-3 mb-2">
-            <a href="/admin/booking/booking/" class="btn btn-outline-primary w-100">
-              Все бронирования
+            <a href="{% url 'booking_list' %}" class="btn btn-outline-primary w-100">
+              📋 Все бронирования
+            </a>
+          </div>
+          <div class="col-md-3 mb-2">
+            <a href="{% url 'booking_create' %}" class="btn btn-outline-success w-100">
+              ➕ Новое бронирование
             </a>
           </div>
           <div class="col-md-3 mb-2">
             <a href="/admin/booking/room/" class="btn btn-outline-secondary w-100">
-              Управление номерами
+              🏨 Управление номерами
             </a>
           </div>
           <div class="col-md-3 mb-2">
-            <a href="/admin/booking/price/" class="btn btn-outline-success w-100">
-              Настройка цен
-            </a>
-          </div>
-          <div class="col-md-3 mb-2">
-            <a href="/admin/booking/discount/" class="btn btn-outline-warning w-100">
-              Скидки
+            <a href="/admin/booking/price/" class="btn btn-outline-warning w-100">
+              💰 Настройка цен
             </a>
           </div>
         </div>

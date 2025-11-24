@@ -8,23 +8,20 @@ def get_room_price(room_type, date_obj):
     day_of_week = date_obj.isoweekday()
 
     try:
-        # Пытаемся найти цену для конкретного типа номера и дня недели
         price_obj = Price.objects.get(
             room_type=room_type,
             day_of_week=day_of_week
         )
         return price_obj.price
     except Price.DoesNotExist:
-        # Если цена не найдена, ищем любую цену для этого типа номера
         any_price = Price.objects.filter(room_type=room_type).first()
         if any_price:
             return any_price.price
 
-        # Если вообще нет цен для этого типа номера, используем логику по категории
         base_prices = {
             'standard': 2000,
-            'comfort': 3000,
-            'lux': 5000
+            'comfort': 2500,
+            'lux': 3000
         }
         return base_prices.get(room_type.category, 2000)
 
@@ -72,23 +69,48 @@ def get_booking_stats():
     return stats
 
 
-def calculate_room_price_preview(room_type, check_in_date, check_out_date, needs_child_bed=False):
+def calculate_room_price_preview(
+        room_type, check_in_date, check_out_date, needs_child_bed=False):
     """Предварительный расчет стоимости без сохранения"""
-
     total = 0
+    base_total = 0
     current_date = check_in_date
     child_bed_price = 500
 
+    daily_prices = []
     while current_date < check_out_date:
-        total += get_room_price(room_type, current_date)
-        if needs_child_bed:
-            total += child_bed_price
+        day_price = get_room_price(room_type, current_date)
+        base_total += day_price
+        daily_prices.append({
+            'date': current_date,
+            'price': day_price
+        })
         current_date += timedelta(days=1)
+
+    total = base_total
+
+    child_bed_total = 0
+    if needs_child_bed:
+        child_bed_total = len(daily_prices) * child_bed_price
+        total += child_bed_total
 
     nights = (check_out_date - check_in_date).days
     discount = get_available_discount(nights)
+    discount_amount = 0
+    discount_percent = 0
 
     if discount:
-        total -= total * (discount.discount_percent / 100)
+        discount_percent = discount.discount_percent
+        discount_amount = total * (discount_percent / 100)
+        total -= discount_amount
 
-    return total
+    return {
+        'total_price': total,
+        'base_price': base_total,
+        'child_bed_price': child_bed_total,
+        'nights': nights,
+        'discount_amount': discount_amount,
+        'discount_percent': discount_percent,
+        'has_discount': discount is not None,
+        'discount_name': discount.name if discount else None
+    }

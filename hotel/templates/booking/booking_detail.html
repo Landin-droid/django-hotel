@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 {% load django_bootstrap5 %}
 
-{% block title %}Бронирование #{{ booking.id }} - Гостиница{% endblock %}
+{% block title %}Бронирование №{{ booking.id }} - Гостиница{% endblock %}
 
-{% block page_title %}Бронирование #{{ booking.id }}{% endblock %}
+{% block page_title %}Бронирование №{{ booking.id }}{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -16,7 +16,10 @@
         <div class="row">
           <div class="col-md-6">
             <h6>Клиент:</h6>
-            <p>{{ booking.client.get_full_name|default:booking.client.username }}</p>
+            <p>{{ booking.client.first_name }} {{ booking.client.last_name }}</p>
+
+            <h6>Телефон:</h6>
+            <p>{{ booking.client.phone }}</p>
 
             <h6>Номер:</h6>
             <p>
@@ -50,8 +53,21 @@
             <p class="text-success">{{ booking.discount_applied }} (-{{ booking.discount_applied.discount_percent }}%)
             </p>
             {% endif %}
+
+            <h6>Создано администратором:</h6>
+            <p>{{ booking.created_by.get_full_name|default:booking.created_by.username }}</p>
           </div>
         </div>
+
+        {% if booking.notes %}
+        <hr>
+        <div class="row">
+          <div class="col-12">
+            <h6>Примечания:</h6>
+            <p class="text-muted">{{ booking.notes }}</p>
+          </div>
+        </div>
+        {% endif %}
 
         {% if booking.actual_check_in or booking.actual_check_out %}
         <hr>
@@ -82,7 +98,7 @@
       </div>
       <div class="card-body">
         <div class="d-grid gap-2">
-          {% if user.user_type in 'admin staff' %}
+          {% if user.is_authenticated %}
           {% if booking.status == 'pending' %}
           <a href="{% url 'confirm_booking' booking.pk %}" class="btn btn-success">
             Подтвердить бронирование
@@ -100,12 +116,12 @@
             Выселить клиента
           </a>
           {% endif %}
-          {% endif %}
 
           {% if booking.status == 'pending' %}
           <a href="{% url 'booking_cancel' booking.pk %}" class="btn btn-danger">
             Отменить бронирование
           </a>
+          {% endif %}
           {% endif %}
 
           <a href="{% url 'booking_list' %}" class="btn btn-outline-secondary">

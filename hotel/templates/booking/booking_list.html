@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 {% load django_bootstrap5 %}
 
-{% block title %}Мои бронирования - Гостиница{% endblock %}
+{% block title %}Бронирования - Гостиница{% endblock %}
 
-{% block page_title %}Мои бронирования{% endblock %}
+{% block page_title %}Бронирования{% endblock %}
 
 {% block content %}
 {% if bookings %}
@@ -22,7 +22,7 @@
     <tbody>
       {% for booking in bookings %}
       <tr>
-        <td>#{{ booking.id }}</td>
+        <td>№{{ booking.id }}</td>
         <td>{{ booking.room.number }} ({{ booking.room.room_type }})</td>
         <td>
           {{ booking.check_in_date }} - {{ booking.check_out_date }}<br>
@@ -51,9 +51,11 @@
 </div>
 {% else %}
 <div class="alert alert-info text-center">
-  <h5>📝 У вас пока нет бронирований</h5>
-  <p>Начните с поиска подходящего номера</p>
-  <a href="{% url 'room_list' %}" class="btn btn-primary">Найти номер</a>
+  <h5>📝 Пока нет бронирований</h5>
+  <p class="mb-3">Создайте первое бронирование</p>
+  <a href="{% url 'booking_create' %}" class="btn btn-primary">
+    ➕ Создать бронирование
+  </a>
 </div>
 {% endif %}
 {% endblock %}
