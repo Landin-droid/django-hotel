@@ -1,5 +1,4 @@
 from datetime import timedelta
-from django.utils import timezone
 from .models import Price, Discount
 
 
@@ -45,28 +44,6 @@ def is_room_available(room, check_in, check_out):
         check_out_date__gt=check_in
     )
     return not overlapping_bookings.exists()
-
-
-def get_booking_stats():
-    """Получить статистику по бронированиям"""
-    from .models import Booking
-
-    today = timezone.now().date()
-    stats = {
-        'total':
-            Booking.objects.count(),
-        'pending':
-            Booking.objects.filter(status='pending').count(),
-        'confirmed':
-            Booking.objects.filter(status='confirmed').count(),
-        'checked_in':
-            Booking.objects.filter(status='checked_in').count(),
-        'today_checkins':
-            Booking.objects.filter(check_in_date=today).count(),
-        'today_checkouts':
-            Booking.objects.filter(check_out_date=today).count(),
-    }
-    return stats
 
 
 def calculate_room_price_preview(

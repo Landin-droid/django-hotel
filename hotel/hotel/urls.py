@@ -27,6 +27,9 @@ urlpatterns = [
         template_name='registration/login.html'), name='login'),
 ]
 
+handler404 = 'booking.views.page_not_found'
+handler500 = 'booking.views.server_error'
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL,
                           document_root=settings.MEDIA_ROOT)

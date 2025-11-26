@@ -115,7 +115,10 @@ class Price(models.Model):
         unique_together = ['room_type', 'day_of_week']
 
     def __str__(self):
-        return f"{self.room_type} - {self.get_day_of_week_display()}: {self.price}₽"
+        return (
+            f"{self.room_type} - "
+            f"{self.get_day_of_week_display()}: {self.price}₽"
+        )
 
 
 class Discount(models.Model):

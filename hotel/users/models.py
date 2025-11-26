@@ -10,8 +10,8 @@ class User(AbstractUser):
     )
 
     class Meta:
-        verbose_name = 'Сотрудник'
-        verbose_name_plural = 'Сотрудники'
+        verbose_name = 'Администратор'
+        verbose_name_plural = 'Администраторы'
 
     def __str__(self):
         return f"{self.username} ({self.get_full_name()})"

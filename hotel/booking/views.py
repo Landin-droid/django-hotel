@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import (
-    ListView, DetailView, CreateView, UpdateView
+    ListView, DetailView, CreateView
 )
 from django.http import JsonResponse
 from django.contrib.auth import logout
@@ -16,90 +16,6 @@ from .forms import BookingForm, ClientForm
 from .utils import (
     calculate_room_price_preview, get_available_discount
 )
-
-
-@login_required
-def calculate_price(request):
-    """AJAX endpoint для расчета стоимости бронирования"""
-    if request.method == 'GET':
-        room_id = request.GET.get('room_id')
-        check_in = request.GET.get('check_in')
-        check_out = request.GET.get('check_out')
-        needs_child_bed = request.GET.get('needs_child_bed') == 'true'
-
-        if not all([room_id, check_in, check_out]):
-            return JsonResponse(
-                {'error': 'Не все параметры указаны'},
-                status=400
-            )
-
-        try:
-            room = Room.objects.get(id=room_id)
-            check_in_date = datetime.strptime(check_in, '%Y-%m-%d').date()
-            check_out_date = datetime.strptime(check_out, '%Y-%m-%d').date()
-
-            # Валидация дат
-            if check_out_date <= check_in_date:
-                return JsonResponse(
-                    {'error': 'Дата выезда должна быть после даты заезда'},
-                    status=400)
-
-            if check_in_date < timezone.now().date():
-                return JsonResponse(
-                    {'error': 'Дата заезда не может быть в прошлом'},
-                    status=400
-                )
-
-            # Расчет стоимости
-            price_data = calculate_room_price_preview(
-                room.room_type,
-                check_in_date,
-                check_out_date,
-                needs_child_bed
-            )
-
-            data = {
-                'success': True,
-                'total_price': float(price_data['total_price']),
-                'nights': price_data['nights'],
-                'discount_applied': price_data['has_discount'],
-                'discount_info': (
-                    f"{price_data['discount_name']} "
-                    "(-{price_data['discount_percent']}%)"
-                    if price_data['has_discount'] else None
-                ),
-                'discount_amount': float(price_data['discount_amount']),
-                'price_per_night': (
-                    float(price_data['total_price']) / price_data['nights']
-                    if price_data['nights'] > 0 else 0
-                ),
-                'child_bed_price': float(price_data['child_bed_price']),
-            }
-
-            return JsonResponse(data)
-
-        except Room.DoesNotExist:
-            return JsonResponse({'error': 'Номер не найден'}, status=400)
-        except ValueError:
-            return JsonResponse({'error': 'Неверный формат даты'}, status=400)
-        except Exception as e:
-            return JsonResponse({'error': f'Ошибка расчета: {str(e)}'},
-                                status=500)
-
-    return JsonResponse({'error': 'Метод не разрешен'}, status=405)
-
-
-def custom_logout(request):
-    """
-    Простой кастомный выход из системы
-    Работает с GET запросами и сразу перенаправляет
-    """
-    if request.user.is_authenticated:
-        username = request.user.username
-        logout(request)
-        messages.success(
-            request, f'Вы успешно вышли из системы. До свидания, {username}!')
-    return redirect('login')
 
 
 @login_required
@@ -160,6 +76,77 @@ def calculate_total_price(
     discount = get_available_discount(price_data['nights'])
 
     return price_data['total_price'], discount
+
+
+@login_required
+def calculate_price(request):
+    """AJAX endpoint для расчета стоимости бронирования"""
+    if request.method == 'GET':
+        room_id = request.GET.get('room_id')
+        check_in = request.GET.get('check_in')
+        check_out = request.GET.get('check_out')
+        needs_child_bed = request.GET.get('needs_child_bed') == 'true'
+
+        if not all([room_id, check_in, check_out]):
+            return JsonResponse(
+                {'error': 'Не все параметры указаны'},
+                status=400
+            )
+
+        try:
+            room = Room.objects.get(id=room_id)
+            check_in_date = datetime.strptime(check_in, '%Y-%m-%d').date()
+            check_out_date = datetime.strptime(check_out, '%Y-%m-%d').date()
+
+            # Валидация дат
+            if check_out_date <= check_in_date:
+                return JsonResponse(
+                    {'error': 'Дата выезда должна быть после даты заезда'},
+                    status=400)
+
+            if check_in_date < timezone.now().date():
+                return JsonResponse(
+                    {'error': 'Дата заезда не может быть в прошлом'},
+                    status=400
+                )
+
+            # Расчет стоимости
+            price_data = calculate_room_price_preview(
+                room.room_type,
+                check_in_date,
+                check_out_date,
+                needs_child_bed
+            )
+
+            data = {
+                'success': True,
+                'total_price': float(price_data['total_price']),
+                'nights': price_data['nights'],
+                'discount_applied': price_data['has_discount'],
+                'discount_info': (
+                    f"{price_data['discount_name']} "
+                    f"(-{price_data['discount_percent']}%)"
+                    if price_data['has_discount'] else None
+                ),
+                'discount_amount': float(price_data['discount_amount']),
+                'price_per_night': (
+                    float(price_data['total_price']) / price_data['nights']
+                    if price_data['nights'] > 0 else 0
+                ),
+                'child_bed_price': float(price_data['child_bed_price']),
+            }
+
+            return JsonResponse(data)
+
+        except Room.DoesNotExist:
+            return JsonResponse({'error': 'Номер не найден'}, status=400)
+        except ValueError:
+            return JsonResponse({'error': 'Неверный формат даты'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': f'Ошибка расчета: {str(e)}'},
+                                status=500)
+
+    return JsonResponse({'error': 'Метод не разрешен'}, status=405)
 
 
 class BookingCreateView(LoginRequiredMixin, CreateView):
@@ -234,22 +221,6 @@ class BookingDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'booking'
 
 
-class BookingUpdateView(LoginRequiredMixin, UpdateView):
-    model = Booking
-    form_class = BookingForm
-    template_name = 'booking/booking_update.html'
-
-    def test_func(self):
-        return self.request.user.user_type in ['admin', 'staff']
-
-    def form_valid(self, form):
-        messages.success(self.request, 'Бронирование обновлено успешно!')
-        return super().form_valid(form)
-
-    def get_success_url(self):
-        return reverse_lazy('booking_detail', kwargs={'pk': self.object.pk})
-
-
 @login_required
 def check_out_booking(request, pk):
     """Выселение гостя"""
@@ -297,3 +268,24 @@ def cancel_booking(request, pk):
     booking.save()
     messages.success(request, 'Бронирование отменено!')
     return redirect('booking_detail', pk=pk)
+
+
+def custom_logout(request):
+    """
+    Простой кастомный выход из системы
+    Работает с GET запросами и сразу перенаправляет
+    """
+    if request.user.is_authenticated:
+        username = request.user.username
+        logout(request)
+        messages.success(
+            request, f'Вы успешно вышли из системы. До свидания, {username}!')
+    return redirect('login')
+
+
+def page_not_found(request, exception):
+    return render(request, 'core/404.html', status=404)
+
+
+def server_error(request):
+    return render(request, 'core/500.html', status=500)

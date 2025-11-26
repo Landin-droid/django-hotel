@@ -17,6 +17,7 @@
       background-color: #f8f9fa;
       padding: 2rem 0;
       margin-top: 3rem;
+      flex-shrink: 0;
     }
 
     .room-card {
@@ -62,7 +63,7 @@
   </style>
 </head>
 
-<body>
+<body class="d-flex flex-column min-vh-100">
   <!-- Навигационная панель -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
@@ -111,7 +112,7 @@
   </nav>
 
   <!-- Основной контент -->
-  <main class="container my-4">
+  <main class="flex-grow-1 container my-4">
     <!-- Сообщения -->
     {% if messages %}
     {% for message in messages %}
